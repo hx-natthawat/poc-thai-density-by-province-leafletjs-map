@@ -17,6 +17,8 @@ This project provides an interactive choropleth map of Thailand showing populati
 - **Responsive Design**: Optimized for mobile, tablet, and desktop devices
 - **Dynamic Zooming**: Click on provinces to zoom in and explore specific regions
 - **Color-coded Visualization**: Provinces are colored based on population density ranges
+- **Background Toggle**: Switch between showing only Thailand or including surrounding countries
+- **Opacity Control**: Adjust the opacity of the background mask with a slider
 - **User-friendly Interface**: Clean, modern UI with intuitive controls
 - **Detailed Information**: View province names and exact population density figures
 
@@ -48,18 +50,21 @@ The project contains multiple implementations:
 ### Installation
 
 1. Clone the repository
+
    ```bash
    git clone https://github.com/yourusername/thai-density-by-province.git
    cd thai-density-by-province
    ```
 
 2. Install dependencies for the Next.js version
+
    ```bash
    cd nextjs-version
    pnpm install
    ```
 
 3. Start the development server
+
    ```bash
    pnpm dev
    ```
@@ -71,6 +76,8 @@ The project contains multiple implementations:
 - **View Population Density**: Hover over any province to see its name and population density
 - **Zoom In**: Click on a province to zoom in
 - **Reset View**: Use the reset button to return to the default view
+- **Toggle Background**: Use the toggle switch to show or hide countries surrounding Thailand
+- **Adjust Opacity**: Use the slider to control how much of the surrounding area is visible
 - **Legend**: Refer to the color-coded legend in the bottom right to understand the density ranges
 
 ## 📊 Data Sources
