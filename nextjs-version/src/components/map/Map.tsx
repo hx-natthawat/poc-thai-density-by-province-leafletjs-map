@@ -98,6 +98,8 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
 
   // State for tracking map readiness and data
   const [isMapReady, setIsMapReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [geoJSONData, setGeoJSONData] = useState<GeoJSON.FeatureCollection<
     GeoJSON.Geometry,
     ProvinceProperties
@@ -180,26 +182,38 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
     const fetchData = async () => {
       try {
         // Check if we already have data
-        if (geoJSONData) return;
+        if (geoJSONData) {
+          setIsLoading(false);
+          return;
+        }
 
-        // console.log('Fetching GeoJSON data...');
-        // const response = await fetch('https://raw.githubusercontent.com/apisit/thailand.json/master/thailandwithdensity.json');
+        setIsLoading(true);
+        setError(null);
+        
         console.log("Fetching GeoJSON data from local file...");
         const response = await fetch("/geo-data/thailandwithdensity.json");
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+        }
+        
         const data = await response.text();
         setGeoJSONData(JSON.parse(data));
+        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching GeoJSON data:", error);
+        setError(error instanceof Error ? error.message : "Failed to load map data");
+        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [geoJSONData]);
+  }, []);
 
   // Initialize the map
   useEffect(() => {
-    // Skip on server side
-    if (typeof window === "undefined") return;
+    // Skip on server side or if there's an error
+    if (typeof window === "undefined" || error) return;
 
     // Clean up function
     const cleanup = () => {
@@ -211,8 +225,8 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
       }
     };
 
-    // Only initialize once
-    if (!containerRef.current || mapRef.current) return cleanup;
+    // Only initialize once and when data is available
+    if (!containerRef.current || mapRef.current || !geoJSONData) return cleanup;
 
     try {
       console.log("Initializing map...");
@@ -437,10 +451,18 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
     geoJsonLayerRef.current = geoJsonLayer;
   }, [geoJSONData, isMapReady, getColor]);
 
+  // Function to retry data loading
+  const handleRetry = () => {
+    setError(null);
+    setIsLoading(true);
+    // Force re-fetch by setting geoJSONData to null
+    setGeoJSONData(null);
+  };
+  
   // Server-side rendering fallback
   if (typeof window === "undefined") {
     return (
-      <div className="h-full w-full rounded-md bg-gray-100 flex items-center justify-center">
+      <div className="h-full w-full rounded-lg bg-card flex items-center justify-center">
         <Loading size="md" message="Loading map..." />
       </div>
     );
@@ -448,16 +470,50 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
 
   // Return the map container div with improved responsive styling
   return (
-    <div
-      ref={containerRef}
-      className="h-full w-full z-0 rounded-lg overflow-hidden"
-      style={{ position: "relative" }}
-    >
-      {!isMapReady && (
-        <div className="h-full w-full flex items-center justify-center bg-gray-100">
-          <Loading size="md" message="Initializing map..." />
+    <div className="relative h-full w-full rounded-lg overflow-hidden border border-border">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+          <Loading size="lg" message="Loading map data..." />
         </div>
       )}
+      
+      {error && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/95 z-10 p-4">
+          <div className="text-center space-y-4 max-w-md">
+            <div className="text-destructive text-4xl mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto h-12 w-12">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold">Failed to load map</h3>
+            <p className="text-muted-foreground">{error}</p>
+            <button 
+              onClick={handleRetry}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              aria-label="Retry loading map data"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {!isMapReady && !error && !isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+          <Loading size="lg" message="Initializing map..." />
+        </div>
+      )}
+      
+      <div
+        ref={containerRef}
+        className="h-full w-full z-0"
+        aria-label="Interactive map of Thailand showing population density by province"
+        role="application"
+        aria-busy={isLoading}
+        aria-live="polite"
+      />
     </div>
   );
 }
