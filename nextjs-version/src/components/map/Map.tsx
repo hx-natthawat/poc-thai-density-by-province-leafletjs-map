@@ -405,15 +405,24 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
       
       // CSS is now loaded from external file for better performance
 
-      // Add tile layer
+      // Add tile layer with safer initialization
       const tileLayer = L.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         {
           attribution:
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-          opacity: showBackground ? backgroundOpacity : 0,
+          opacity: 0, // Start with 0 opacity and update after map is fully initialized
+          className: 'background-tile-layer', // Add class for better CSS targeting
         }
       ).addTo(map);
+      
+      // Wait for the tile layer to load before setting opacity
+      tileLayer.on('load', () => {
+        console.log('Tile layer loaded, setting initial opacity');
+        setTimeout(() => {
+          tileLayer.setOpacity(showBackground ? backgroundOpacity : 0);
+        }, 200);
+      });
       tileLayerRef.current = tileLayer;
 
       // Set map as ready
@@ -440,22 +449,39 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
     return cleanup;
   }, [geoJSONData, error, containerRef, style, highlightFeature, resetHighlight, zoomToFeature]);
 
-  // Update tile layer when background settings change - with performance optimizations
+  // Update tile layer when background settings change - with improved safety checks
   useEffect(() => {
-    if (!mapRef.current || !isMapReady) return;
+    // Safety check to ensure map is fully initialized and ready
+    if (!mapRef.current || !isMapReady) {
+      console.log('Map not ready for opacity changes, skipping update');
+      return;
+    }
     
-    // Use a debounced function to handle opacity changes
-    const updateOpacity = debounce((opacity: number) => {
-      if (tileLayerRef.current) {
-        tileLayerRef.current.setOpacity(opacity);
+    // Safer approach to handle opacity changes with proper error handling
+    const safelyUpdateOpacity = (opacity: number) => {
+      try {
+        // Validate map state before making changes
+        if (mapRef.current && tileLayerRef.current) {
+          console.log(`Setting tile layer opacity to ${opacity}`);
+          // Use setTimeout to ensure the map is stable before changing opacity
+          setTimeout(() => {
+            if (tileLayerRef.current) {
+              tileLayerRef.current.setOpacity(opacity);
+            }
+          }, 50);
+        } else {
+          console.log('Tile layer or map not ready for opacity update');
+        }
+      } catch (error) {
+        console.error('Error updating tile layer opacity:', error);
       }
-    }, 50);
+    };
 
-    // Only recreate the tile layer when showBackground changes, not on every opacity change
+    // Only update opacity when showBackground or backgroundOpacity changes
     if (showBackground) {
       if (tileLayerRef.current) {
         // Just update opacity if layer exists
-        updateOpacity(backgroundOpacity);
+        safelyUpdateOpacity(backgroundOpacity);
       } else {
         // Create new tile layer with better caching options
         const tileLayer = L.tileLayer(
@@ -463,18 +489,26 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
           {
             attribution:
               '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            opacity: backgroundOpacity,
+            opacity: 0, // Start with 0 opacity and gradually increase for stability
             updateWhenIdle: true,  // Only update when map is idle for better performance
             updateWhenZooming: false,  // Don't update during zoom for better performance
             keepBuffer: 2,  // Keep more tiles in memory for smoother panning
             maxNativeZoom: 19,  // Maximum zoom level for which tiles are available
             maxZoom: 22,  // Allow zooming beyond available tiles
-            crossOrigin: true  // Enable CORS for better caching
+            crossOrigin: true,  // Enable CORS for better caching
+            className: 'background-tile-layer' // Add class for better CSS targeting
           }
         ).addTo(mapRef.current);
         
         // Store reference
         tileLayerRef.current = tileLayer;
+        
+        // Wait a moment before setting opacity to ensure the layer is fully loaded
+        setTimeout(() => {
+          if (tileLayerRef.current) {
+            tileLayerRef.current.setOpacity(backgroundOpacity);
+          }
+        }, 100);
       }
     } else if (tileLayerRef.current) {
       // Remove tile layer if showBackground is false
@@ -482,11 +516,8 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
       tileLayerRef.current = null;
     }
     
-    // Clean up debounced function
-    return () => {
-      // TypeScript doesn't know about the cancel property on debounced functions
-      (updateOpacity as any).cancel && (updateOpacity as any).cancel();
-    };
+    // No cleanup needed for setTimeout
+    return () => {};
   }, [showBackground, backgroundOpacity, isMapReady]);
 
   // Add GeoJSON layer when data is available and map is ready - with performance optimizations
