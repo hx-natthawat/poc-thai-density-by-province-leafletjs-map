@@ -4,7 +4,9 @@ This document outlines planned improvements and feature additions for the Thai P
 
 ## High Priority
 
-- [ ] **Fix Type Declarations**: Resolve the "Cannot find module 'next-themes/dist/types'" lint error by adding proper type declarations
+- [x] **Fix Type Declarations**: ~~Resolve the "Cannot find module 'next-themes/dist/types'" lint error by adding proper type declarations~~ (Completed on March 31, 2025)
+  - Created proper type declarations file for next-themes
+  - Updated theme-provider.tsx to use imported types instead of local definitions
 - [ ] **Accessibility Audit**: Conduct a comprehensive accessibility audit and implement improvements for WCAG compliance
 - [ ] **Mobile Testing**: Test thoroughly on various mobile devices and screen sizes to ensure responsive design works properly
 - [x] **Performance Optimization**: ~~Optimize map rendering and data loading for better performance on low-end devices~~ (Completed on March 31, 2025)
