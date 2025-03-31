@@ -10,6 +10,10 @@ An interactive choropleth map showing population density by province in Thailand
 - Hover information display for province details
 - Dynamic zooming on province click
 - Color-coded legend for density ranges
+- Responsive design for mobile and desktop devices
+- Dark/light theme support
+- Improved UI/UX with modern components
+- Detailed metadata and information panel
 
 ## Technologies Used
 
@@ -45,7 +49,16 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - `/src/components/map/` - Map-related components
   - `ThaiDensityMap.tsx` - Main component with controls
   - `Map.tsx` - Leaflet map implementation
+  - `MapMetadata.tsx` - Information panel about the map
 - `/src/components/ui/` - ShadCN UI components
+  - Various UI components including Loading, Button, Toggle, etc.
+- `/src/components/layout/` - Layout components
+  - `Container.tsx` - Responsive container component
+  - `Header.tsx` - Application header with navigation
+  - `Footer.tsx` - Application footer
+  - `MobileMenu.tsx` - Responsive mobile navigation menu
+- `/src/hooks/` - Custom React hooks
+  - `useLeafletMap.ts` - Hook for managing Leaflet map lifecycle
 - `/src/app/` - Next.js app router pages
 
 ## Data Source

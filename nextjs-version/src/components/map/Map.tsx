@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import L from "leaflet";
+import { Loading } from "@/components/ui/loading";
 
 // Import Leaflet CSS in the component to avoid SSR issues
 import "leaflet/dist/leaflet.css";
@@ -37,12 +38,12 @@ class CustomInfoControl extends L.Control {
     this._div.innerHTML =
       "<h4>Thai Population Density</h4>" +
       (props
-        ? "<b>" +
+        ? "<p><strong style='font-weight:600'>" +
           props.name +
-          "</b><br />" +
-          props.p +
-          " people / km<sup>2</sup>"
-        : "Hover over a province");
+          "</strong><br />" +
+          (props.p ? props.p.toLocaleString() : props.p) +
+          " <span style='font-weight:500'>people / km<sup>2</sup></span></p>"
+        : "<p>Hover over a province</p>");
   }
 }
 
@@ -60,21 +61,26 @@ class CustomLegendControl extends L.Control {
     this._div = L.DomUtil.create("div", "info legend");
     const grades = [0, 10, 20, 50, 100, 200, 500, 1000];
     let labels = [];
+    
+    // Add a title to the legend
+    labels.push('<div class="title">Population Density</div>');
 
     for (let i = 0; i < grades.length; i++) {
       const from = grades[i];
       const to = grades[i + 1];
 
       labels.push(
-        '<i style="background:' +
+        '<div><i style="background:' +
           this.getColor(from + 1) +
           '"></i> ' +
-          from +
-          (to ? "&ndash;" + to : "+")
+          '<span style="line-height:18px">' + 
+          from.toLocaleString() + 
+          (to ? "&ndash;" + to.toLocaleString() : "+") + 
+          ' people/km²</span></div>'
       );
     }
 
-    this._div.innerHTML = labels.join("<br>");
+    this._div.innerHTML = labels.join('');
     return this._div;
   }
 }
@@ -210,25 +216,127 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
 
     try {
       console.log("Initializing map...");
-      // Create map instance
+      // Create map instance with mobile-friendly options
       const map = L.map(containerRef.current, {
         center: [13, 101.5],
         zoom: 5,
-        zoomControl: true,
+        zoomControl: false, // We'll add zoom control in a better position for mobile
+        attributionControl: false, // We'll add attribution control in a better position
+        minZoom: 4,
+        maxZoom: 10,
+        maxBounds: L.latLngBounds(
+          L.latLng(5, 95), // Southwest corner
+          L.latLng(21, 110) // Northeast corner
+        ),
+        bounceAtZoomLimits: true
       });
+      
+      // Add zoom control to top-left (better for mobile)
+      L.control.zoom({ position: 'topleft' }).addTo(map);
+      
+      // Add attribution control to bottom-left
+      L.control.attribution({
+        position: 'bottomleft',
+        prefix: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(map);
 
       // Store map reference
       mapRef.current = map;
 
-      // Create info control
+      // Create info control with improved styling
       const infoControl = new CustomInfoControl();
+      // Add custom styling for better mobile appearance
       infoControl.addTo(map);
       infoControlRef.current = infoControl;
+      
+      // Add custom CSS to style the info control
+      const style = document.createElement('style');
+      style.innerHTML = `
+        .info {
+          padding: 8px 10px;
+          background: rgba(255,255,255,0.95);
+          color: #333;
+          box-shadow: 0 0 15px rgba(0,0,0,0.3);
+          border-radius: 6px;
+          max-width: 250px;
+          border: 1px solid rgba(0,0,0,0.1);
+        }
+        .info h4 {
+          margin: 0 0 8px;
+          font-size: 15px;
+          font-weight: bold;
+          color: #000;
+          border-bottom: 1px solid rgba(0,0,0,0.1);
+          padding-bottom: 5px;
+        }
+        .info p {
+          margin: 0;
+          font-size: 14px;
+          line-height: 1.4;
+        }
+        .dark .info {
+          background: rgba(30,30,30,0.95);
+          color: #f0f0f0;
+          border: 1px solid rgba(255,255,255,0.1);
+          box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+        .dark .info h4 {
+          color: #fff;
+          border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        @media (max-width: 640px) {
+          .info {
+            max-width: 200px;
+            font-size: 12px;
+          }
+        }
+      `;
+      document.head.appendChild(style);
 
-      // Create legend control
+      // Create legend control with improved styling
       const legendControl = new CustomLegendControl(getColor);
       legendControl.addTo(map);
       legendControlRef.current = legendControl;
+      
+      // Add custom CSS to style the legend control
+      const legendStyle = document.createElement('style');
+      legendStyle.innerHTML = `
+        .legend {
+          padding: 6px 8px;
+          background: rgba(255,255,255,0.9);
+          box-shadow: 0 0 15px rgba(0,0,0,0.2);
+          border-radius: 4px;
+          line-height: 1.6;
+        }
+        .legend i {
+          width: 18px;
+          height: 18px;
+          float: left;
+          margin-right: 8px;
+          opacity: 0.7;
+        }
+        .legend div {
+          clear: both;
+          margin-bottom: 3px;
+          font-size: 12px;
+        }
+        .legend div.title {
+          font-weight: bold;
+          font-size: 13px;
+          margin-bottom: 5px;
+        }
+        @media (max-width: 640px) {
+          .legend {
+            max-width: 200px;
+            padding: 4px 6px;
+          }
+          .legend i {
+            width: 16px;
+            height: 16px;
+          }
+        }
+      `;
+      document.head.appendChild(legendStyle);
 
       // Add tile layer
       const tileLayer = L.tileLayer(
@@ -332,22 +440,22 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
   // Server-side rendering fallback
   if (typeof window === "undefined") {
     return (
-      <div className="h-[80vh] w-full rounded-md bg-gray-100 flex items-center justify-center">
-        <p className="text-gray-500">Loading map...</p>
+      <div className="h-full w-full rounded-md bg-gray-100 flex items-center justify-center">
+        <Loading size="md" message="Loading map..." />
       </div>
     );
   }
 
-  // Return the map container div
+  // Return the map container div with improved responsive styling
   return (
     <div
       ref={containerRef}
-      className="h-[80vh] w-full z-0"
+      className="h-full w-full z-0 rounded-lg overflow-hidden"
       style={{ position: "relative" }}
     >
       {!isMapReady && (
         <div className="h-full w-full flex items-center justify-center bg-gray-100">
-          <p className="text-gray-500">Initializing map...</p>
+          <Loading size="md" message="Initializing map..." />
         </div>
       )}
     </div>
