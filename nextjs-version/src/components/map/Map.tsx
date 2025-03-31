@@ -38,8 +38,13 @@ class CustomInfoControl extends L.Control {
   }
 
   update(props?: ProvinceProperties): void {
+    // Add ARIA role and live region for screen readers
+    this._div.setAttribute('role', 'region');
+    this._div.setAttribute('aria-label', 'Province Information');
+    this._div.setAttribute('aria-live', 'polite');
+    
     this._div.innerHTML =
-      "<h4>Thai Population Density</h4>" +
+      "<h4 id='info-title'>Thai Population Density</h4>" +
       (props
         ? "<p><strong style='font-weight:600'>" +
           props.name +
@@ -47,6 +52,11 @@ class CustomInfoControl extends L.Control {
           (props.p ? props.p.toLocaleString() : props.p) +
           " <span style='font-weight:500'>people / km<sup>2</sup></span></p>"
         : "<p>Hover over a province</p>");
+    
+    // Ensure the control is keyboard focusable
+    if (!this._div.hasAttribute('tabindex')) {
+      this._div.setAttribute('tabindex', '0');
+    }
   }
 }
 
@@ -62,20 +72,26 @@ class CustomLegendControl extends L.Control {
 
   onAdd(map: L.Map): HTMLElement {
     this._div = L.DomUtil.create("div", "info legend");
+    
+    // Add ARIA attributes for accessibility
+    this._div.setAttribute('role', 'region');
+    this._div.setAttribute('aria-label', 'Map Legend');
+    this._div.setAttribute('tabindex', '0');
+    
     const grades = [0, 10, 20, 50, 100, 200, 500, 1000];
     let labels = [];
     
-    // Add a title to the legend
-    labels.push('<div class="title">Population Density</div>');
+    // Add a title to the legend with proper heading semantics
+    labels.push('<div class="title" id="legend-title" role="heading" aria-level="2">Population Density</div>');
 
     for (let i = 0; i < grades.length; i++) {
       const from = grades[i];
       const to = grades[i + 1];
 
       labels.push(
-        '<div><i style="background:' +
+        '<div class="legend-item"><i style="background:' +
           this.getColor(from + 1) +
-          '"></i> ' +
+          '" role="presentation" aria-hidden="true"></i> ' +
           '<span style="line-height:18px">' + 
           from.toLocaleString() + 
           (to ? "&ndash;" + to.toLocaleString() : "+") + 
@@ -170,7 +186,7 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
     }
   }, [geoJSONData, style]);
 
-  // Highlight feature on hover - with improved handling for fast movements
+  // Highlight feature on hover - with improved handling for fast movements and accessibility
   const highlightFeature = useCallback((e: L.LeafletEvent) => {
     // Reset any existing highlights first
     resetAllHighlights();
@@ -195,9 +211,15 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
     // Track this layer as highlighted
     highlightedLayerRef.current = layer;
     highlightedLayersRef.current.add(layer);
+    
     // Only update info if feature exists and has properties
     if (layer.feature && layer.feature.properties) {
-      infoControlRef.current?.update(layer.feature.properties);
+      const props = layer.feature.properties;
+      infoControlRef.current?.update(props);
+      
+      // Announce province information for screen readers
+      const announcement = `${props.name}: ${props.p ? props.p.toLocaleString() : 'Unknown'} people per square kilometer`;
+      announceToScreenReader(announcement);
     }
   }, [resetAllHighlights]);
 
@@ -231,12 +253,40 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
   const onEachFeature = useCallback((feature: GeoJSON.Feature<GeoJSON.Geometry, ProvinceProperties>, layer: L.Layer) => {
     if (!feature || !layer) return;
     
-    // Use a more robust approach for event handling
-    layer.on({
+    // Use a more robust approach for event handling with touch support
+    const leafletLayer = layer as L.Layer;
+    
+    // Standard mouse events
+    leafletLayer.on({
       mouseover: highlightFeature,
       mouseout: resetHighlight,
       click: zoomToFeature,
     });
+    
+    // Add touch support for mobile devices using DOM events
+    if (leafletLayer instanceof L.Path) {
+      const element = leafletLayer.getElement();
+      if (element) {
+        element.addEventListener('touchstart', (domEvent) => {
+          domEvent.preventDefault();
+          highlightFeature({ target: leafletLayer } as L.LeafletEvent);
+        });
+        
+        element.addEventListener('touchend', (domEvent) => {
+          domEvent.preventDefault();
+          // Prevent immediate reset on touch devices
+          setTimeout(() => {
+            // Only reset if this is still the highlighted layer
+            if (highlightedLayerRef.current === leafletLayer) {
+              resetHighlight({ target: leafletLayer } as L.LeafletEvent);
+            }
+          }, 1000);
+          
+          // Zoom on touch
+          zoomToFeature({ target: leafletLayer } as L.LeafletEvent);
+        });
+      }
+    }
   }, [highlightFeature, resetHighlight, zoomToFeature]);
 
   // Add a reference to store the GeoJSON layer for global operations
@@ -520,6 +570,144 @@ export default function Map({ showBackground, backgroundOpacity }: MapProps) {
     return () => {};
   }, [showBackground, backgroundOpacity, isMapReady]);
 
+  // Add keyboard navigation support for accessibility
+  useEffect(() => {
+    if (!mapRef.current || !isMapReady) return;
+    
+    // Create a keyboard handler for map navigation
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!mapRef.current) return;
+      
+      const map = mapRef.current;
+      const panAmount = 50; // pixels to pan
+      const zoomAmount = 1; // zoom level change
+      
+      switch (e.key) {
+        case 'ArrowUp': // Pan up
+          map.panBy([0, -panAmount]);
+          break;
+        case 'ArrowDown': // Pan down
+          map.panBy([0, panAmount]);
+          break;
+        case 'ArrowLeft': // Pan left
+          map.panBy([-panAmount, 0]);
+          break;
+        case 'ArrowRight': // Pan right
+          map.panBy([panAmount, 0]);
+          break;
+        case '+': // Zoom in
+        case '=': // Also zoom in (= is the unshifted + key)
+          map.setZoom(map.getZoom() + zoomAmount);
+          break;
+        case '-': // Zoom out
+          map.setZoom(map.getZoom() - zoomAmount);
+          break;
+        case 'Home': // Reset view
+          map.setView([13, 101.5], 5);
+          break;
+        default:
+          return; // Exit for other keys
+      }
+      
+      // Prevent default browser behavior for these keys
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', '+', '=', '-', 'Home'].includes(e.key)) {
+        e.preventDefault();
+      }
+    };
+    
+    // Add keyboard event listener when map container is focused
+    const mapContainer = mapRef.current.getContainer();
+    mapContainer.setAttribute('tabindex', '0'); // Make container focusable
+    mapContainer.setAttribute('aria-label', 'Interactive map of Thailand population density. Use arrow keys to pan, + and - to zoom.');
+    mapContainer.addEventListener('keydown', handleKeyDown);
+    
+    // Add focus indicator styles
+    mapContainer.addEventListener('focus', () => {
+      mapContainer.style.outline = '2px solid #0070f3';
+      mapContainer.style.outlineOffset = '2px';
+    });
+    
+    mapContainer.addEventListener('blur', () => {
+      mapContainer.style.outline = 'none';
+    });
+    
+    return () => {
+      if (mapContainer) {
+        mapContainer.removeEventListener('keydown', handleKeyDown);
+        mapContainer.removeEventListener('focus', () => {});
+        mapContainer.removeEventListener('blur', () => {});
+      }
+    };
+  }, [isMapReady]);
+  
+  // Helper function to announce text to screen readers
+  const announceToScreenReader = (text: string) => {
+    // Create or get the live region element
+    let liveRegion = document.getElementById('map-announcer');
+    if (!liveRegion) {
+      liveRegion = document.createElement('div');
+      liveRegion.id = 'map-announcer';
+      liveRegion.className = 'sr-only';
+      liveRegion.setAttribute('aria-live', 'polite');
+      liveRegion.setAttribute('aria-atomic', 'true');
+      document.body.appendChild(liveRegion);
+    }
+    
+    // Update the content to trigger screen reader announcement
+    liveRegion.textContent = text;
+    
+    // Clear after a delay to prevent multiple rapid announcements
+    setTimeout(() => {
+      liveRegion.textContent = '';
+    }, 3000);
+  };
+
+  // Add touch event handling for better mobile accessibility
+  useEffect(() => {
+    if (!mapRef.current || !isMapReady) return;
+    
+    const map = mapRef.current;
+    const container = map.getContainer();
+    
+    // Add touch instructions for screen readers
+    const touchInstructions = document.createElement('div');
+    touchInstructions.className = 'sr-only';
+    touchInstructions.setAttribute('aria-live', 'polite');
+    touchInstructions.textContent = 'Map loaded. Use two fingers to pan, pinch to zoom, and tap on provinces to see details.';
+    container.appendChild(touchInstructions);
+    
+    // Clear instructions after they've been read
+    setTimeout(() => {
+      touchInstructions.textContent = '';
+    }, 5000);
+    
+    // Add CSS for screen reader only elements if not already present
+    if (!document.getElementById('sr-only-style')) {
+      const style = document.createElement('style');
+      style.id = 'sr-only-style';
+      style.textContent = `
+        .sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border-width: 0;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    return () => {
+      if (container.contains(touchInstructions)) {
+        container.removeChild(touchInstructions);
+      }
+    };
+  }, [isMapReady]);
+  
   // Add GeoJSON layer when data is available and map is ready - with performance optimizations
   useEffect(() => {
     if (!mapRef.current || !isMapReady || !geoJSONData) return;

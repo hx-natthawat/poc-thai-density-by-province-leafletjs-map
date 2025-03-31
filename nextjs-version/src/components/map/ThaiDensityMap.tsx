@@ -25,7 +25,7 @@ export default function ThaiDensityMap() {
 
   return (
     <Container maxWidth="xl" className="py-6">
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6" role="region" aria-label="Thai Population Density Map application">
       <div className="flex flex-col gap-2 mb-6">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center">Thai Population Density Map</h1>
         <p className="text-center text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">Interactive visualization of population density across Thailand's provinces</p>
@@ -83,8 +83,18 @@ export default function ThaiDensityMap() {
         </div>
       </div>
       
-      {/* Map Container */}
-      <div className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh] rounded-lg overflow-hidden shadow-md border border-border bg-card/50">
+      {/* Map Container with accessibility attributes */}
+      <div 
+        className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh] rounded-lg overflow-hidden shadow-md border border-border bg-card/50"
+        role="application"
+        aria-label="Interactive map of Thailand population density"
+        aria-describedby="map-instructions"
+      >
+        <div id="map-instructions" className="sr-only">
+          This is an interactive map showing population density across Thailand's provinces. 
+          Use arrow keys to navigate the map, plus and minus keys to zoom, and Enter to select provinces. 
+          Information about selected provinces will be announced to screen readers.
+        </div>
         <Map
           key={`map-${showBackground}-${backgroundOpacity}`}
           showBackground={showBackground}
@@ -92,14 +102,30 @@ export default function ThaiDensityMap() {
         />
       </div>
       
-      <footer className="mt-6 text-center text-xs sm:text-sm text-muted-foreground">
+      <footer className="mt-6 text-center text-xs sm:text-sm text-muted-foreground" role="contentinfo">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
           <span>© {new Date().getFullYear()} Thai Population Density Map</span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" aria-label="Technology credits">
             <span>Powered by:</span>
-            <a href="https://nextjs.org" className="underline hover:text-foreground" target="_blank" rel="noopener noreferrer">Next.js</a>
+            <a 
+              href="https://nextjs.org" 
+              className="underline hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-sm" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              aria-label="Next.js (opens in a new window)"
+            >
+              Next.js
+            </a>
             <span>|</span>
-            <a href="https://leafletjs.com" className="underline hover:text-foreground" target="_blank" rel="noopener noreferrer">Leaflet</a>
+            <a 
+              href="https://leafletjs.com" 
+              className="underline hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-sm" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              aria-label="Leaflet (opens in a new window)"
+            >
+              Leaflet
+            </a>
           </div>
         </div>
       </footer>

@@ -3,17 +3,19 @@
  * These styles are optimized for performance and mobile devices
  */
 
-/* Info control styles */
+/* Info control styles with improved accessibility */
 .info {
   padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.95);
-  color: #333;
+  background: rgba(255, 255, 255, 0.98);
+  color: #222; /* Darker text for better contrast */
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
   border-radius: 6px;
   max-width: 250px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.2); /* Stronger border */
   will-change: transform, opacity; /* Performance hint for animations */
   z-index: 1000;
+  /* Focus styles for keyboard navigation */
+  outline: none;
 }
 
 .info h4 {
@@ -31,11 +33,11 @@
   line-height: 1.4;
 }
 
-/* Dark mode styles */
+/* Dark mode styles with improved contrast */
 .dark .info {
-  background: rgba(30, 30, 30, 0.95);
-  color: #f0f0f0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(30, 30, 30, 0.98);
+  color: #ffffff; /* Brighter text for better contrast */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Stronger border */
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
@@ -44,16 +46,19 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Legend styles */
+/* Legend styles with improved accessibility */
 .legend {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.98);
   padding: 8px 10px;
   border-radius: 6px;
-  line-height: 1.2;
-  color: #333;
+  line-height: 1.4; /* Improved line height for readability */
+  color: #222; /* Darker text for better contrast */
   max-width: 220px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   will-change: transform; /* Performance hint */
+  border: 1px solid rgba(0, 0, 0, 0.2); /* Added border for better visibility */
+  /* Focus styles for keyboard navigation */
+  outline: none;
 }
 
 .legend i {
@@ -61,10 +66,29 @@
   height: 18px;
   float: left;
   margin-right: 8px;
-  opacity: 0.7;
+  opacity: 0.9; /* Increased opacity for better visibility */
   clear: both;
   margin-bottom: 3px;
   font-size: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.2); /* Added border for better visibility */
+}
+
+/* Add focus styles for keyboard navigation */
+.info:focus, .legend:focus {
+  outline: 2px solid #0070f3;
+  outline-offset: 2px;
+}
+
+.dark .info:focus, .dark .legend:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Improve legend item spacing for better readability */
+.legend-item {
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
 }
 
 .legend div.title {
@@ -74,9 +98,9 @@
 }
 
 .dark .legend {
-  background: rgba(30, 30, 30, 0.95);
-  color: #f0f0f0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(30, 30, 30, 0.98);
+  color: #ffffff; /* Brighter text for better contrast */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Stronger border */
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
 }
 

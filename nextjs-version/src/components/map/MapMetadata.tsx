@@ -14,6 +14,7 @@ export function MapMetadata({ isOpen, onToggle }: MapMetadataProps) {
       className="bg-card rounded-lg shadow-sm border border-border p-4"
       aria-labelledby={headingId}
       role="region"
+      tabIndex={0} // Make the section focusable for keyboard navigation
     >
       <div className="flex items-center justify-between mb-2">
         <h2 id={headingId} className="text-base font-semibold">About This Map</h2>
@@ -32,21 +33,40 @@ export function MapMetadata({ isOpen, onToggle }: MapMetadataProps) {
         id={contentId}
         className={`text-sm space-y-3 ${isOpen ? 'animate-in fade-in duration-200' : 'hidden'}`}
         aria-hidden={!isOpen}
+        role="region"
+        aria-live="polite" // Announce changes to screen readers
       >
-        <section>
-          <h3 className="font-medium mb-1">Data Source</h3>
+        <section aria-labelledby="data-source-heading">
+          <h3 id="data-source-heading" className="font-medium mb-1">Data Source</h3>
           <p className="text-muted-foreground">
             Population density data is sourced from the Thailand GeoJSON project, which provides geographical data for Thailand's provinces along with population density metrics.
           </p>
         </section>
         
-        <section>
-          <h3 className="font-medium mb-1">Map Features</h3>
-          <ul className="list-disc list-inside text-muted-foreground space-y-1" role="list">
-            <li>Hover over provinces to see detailed population density</li>
-            <li>Click on a province to zoom in for a closer view</li>
+        <section aria-labelledby="map-features-heading">
+          <h3 id="map-features-heading" className="font-medium mb-1">Map Features</h3>
+          <ul className="list-disc list-inside text-muted-foreground space-y-1" role="list" aria-label="Available map interactions">
+            <li>Hover or focus on provinces to see detailed population density</li>
+            <li>Click or press Enter on a province to zoom in for a closer view</li>
             <li>Toggle the background map on/off for different visualization styles</li>
             <li>Adjust background opacity to highlight province boundaries</li>
+            <li>Use keyboard arrow keys to navigate the map, plus and minus to zoom</li>
+          </ul>
+        </section>
+        
+        <section aria-labelledby="accessibility-heading">
+          <h3 id="accessibility-heading" className="font-medium mb-1">Accessibility</h3>
+          <p className="text-muted-foreground">
+            This map is designed to be accessible to all users, including those using screen readers and keyboard navigation.
+            Features include:
+          </p>
+          <ul className="list-disc list-inside text-muted-foreground space-y-1 mt-2" role="list" aria-label="Accessibility features">
+            <li>Keyboard navigation support for the map (arrow keys, +/- for zoom)</li>
+            <li>Screen reader announcements for province information</li>
+            <li>Skip to content link for keyboard users</li>
+            <li>ARIA labels and roles for all interactive elements</li>
+            <li>High contrast color options for better visibility</li>
+            <li>Focus indicators for keyboard navigation</li>
           </ul>
         </section>
         
