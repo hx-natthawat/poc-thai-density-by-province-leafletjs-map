@@ -97,6 +97,53 @@
   margin-bottom: 5px;
 }
 
+/* Mobile touch-specific styles */
+.touch-target {
+  /* Increase touch target size for better mobile interaction */
+  cursor: pointer;
+  /* Ensure the touch target is large enough for mobile */
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.touch-active {
+  /* Visual feedback for active touch */
+  filter: brightness(1.2);
+  stroke-width: 3px !important;
+  stroke: #333 !important;
+  transition: all 0.2s ease;
+}
+
+/* Dark mode touch feedback */
+.dark .touch-active {
+  stroke: #fff !important;
+  filter: brightness(1.5);
+}
+
+/* Mobile-specific control adjustments */
+@media (max-width: 768px) {
+  .leaflet-control-container .leaflet-top,
+  .leaflet-control-container .leaflet-bottom {
+    padding: 10px;  /* Increase padding for touch targets */
+  }
+  
+  .leaflet-control-zoom a {
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    font-size: 18px !important;
+  }
+  
+  .info {
+    max-width: 80vw; /* Responsive width on small screens */
+    font-size: 14px;
+  }
+  
+  .legend {
+    max-width: 80vw; /* Responsive width on small screens */
+  }
+}
+
 .dark .legend {
   background: rgba(30, 30, 30, 0.98);
   color: #ffffff; /* Brighter text for better contrast */

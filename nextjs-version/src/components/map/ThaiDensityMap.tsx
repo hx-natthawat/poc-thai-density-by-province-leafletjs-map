@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import { Toggle } from "@/components/ui/toggle";
 import { Slider } from "@/components/ui/slider";
 import { Loading } from "@/components/ui/loading";
 import { Container } from "@/components/layout/container";
 import { MapMetadata } from "./MapMetadata";
+import { MobileMapControls } from "./MobileMapControls";
+import type { Map as LeafletMap } from "leaflet";
 
 // Dynamically import the Map component with no SSR to avoid Leaflet issues
 const Map = dynamic(() => import("./Map"), {
@@ -22,6 +24,20 @@ export default function ThaiDensityMap() {
   const [showBackground, setShowBackground] = useState(true);
   const [backgroundOpacity, setBackgroundOpacity] = useState(0.7);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const mapRef = useRef<LeafletMap | null>(null);
+  
+  // Function to handle map instance reference
+  const handleMapInstance = (map: LeafletMap) => {
+    mapRef.current = map;
+  };
+  
+  // Function to reset map view to default
+  const resetMapView = () => {
+    if (mapRef.current) {
+      // Reset to Thailand bounds
+      mapRef.current.setView([13.7563, 100.5018], 6);
+    }
+  };
 
   return (
     <Container maxWidth="xl" className="py-6">
@@ -94,12 +110,16 @@ export default function ThaiDensityMap() {
           This is an interactive map showing population density across Thailand's provinces. 
           Use arrow keys to navigate the map, plus and minus keys to zoom, and Enter to select provinces. 
           Information about selected provinces will be announced to screen readers.
+          On mobile devices, use touch gestures to navigate and tap on provinces for details.
         </div>
         <Map
           key={`map-${showBackground}-${backgroundOpacity}`}
           showBackground={showBackground}
           backgroundOpacity={backgroundOpacity}
+          onMapInstance={handleMapInstance}
         />
+        {/* Mobile-specific map controls */}
+        <MobileMapControls map={mapRef.current} onResetView={resetMapView} />
       </div>
       
       <footer className="mt-6 text-center text-xs sm:text-sm text-muted-foreground" role="contentinfo">
