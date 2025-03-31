@@ -35,29 +35,31 @@ export default function ThaiDensityMap() {
       <MapMetadata isOpen={isInfoOpen} onToggle={() => setIsInfoOpen(!isInfoOpen)} />
       
       {/* Controls Card */}
-      <div className="flex flex-col gap-4 p-4 bg-card rounded-lg shadow-sm border border-border">
-        <h2 className="text-base font-semibold mb-2">Map Controls</h2>
+      <div className="flex flex-col gap-4 p-4 bg-card rounded-lg shadow-sm border border-border" role="region" aria-labelledby="map-controls-heading">
+        <h2 id="map-controls-heading" className="text-base font-semibold mb-2">Map Controls</h2>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Background Map</label>
+          <div className="flex flex-col gap-2" role="group" aria-labelledby="background-map-label">
+            <label id="background-map-label" className="text-sm font-medium">Background Map</label>
             <div className="flex items-center gap-2">
               <Toggle 
                 pressed={showBackground} 
                 onPressedChange={setShowBackground}
-                aria-label="Toggle background"
-                className="data-[state=on]:bg-black dark:data-[state=on]:bg-white data-[state=on]:text-white dark:data-[state=on]:text-black font-semibold border data-[state=on]:border-black dark:data-[state=on]:border-white min-w-[50px] flex justify-center"
+                aria-label={showBackground ? "Turn off background map" : "Turn on background map"}
+                aria-pressed={showBackground}
+                aria-describedby="background-status"
+                className="data-[state=on]:bg-black dark:data-[state=on]:bg-white data-[state=on]:text-white dark:data-[state=on]:text-black font-semibold border data-[state=on]:border-black dark:data-[state=on]:border-white min-w-[50px] flex justify-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
                 {showBackground ? "ON" : "OFF"}
               </Toggle>
-              <span className="text-sm font-medium text-foreground">
+              <span id="background-status" className="text-sm font-medium text-foreground">
                 {showBackground ? "Background visible" : "Background hidden"}
               </span>
             </div>
           </div>
           
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Background Opacity</label>
+          <div className="flex flex-col gap-2" role="group" aria-labelledby="opacity-label">
+            <label id="opacity-label" className="text-sm font-medium">Background Opacity</label>
             <div className="flex items-center gap-3 w-full">
               <Slider
                 disabled={!showBackground}
@@ -67,7 +69,11 @@ export default function ThaiDensityMap() {
                 step={0.1}
                 onValueChange={(value: number[]) => setBackgroundOpacity(value[0])}
                 aria-label="Background opacity"
-                className="flex-1"
+                aria-valuemin={0}
+                aria-valuemax={1}
+                aria-valuenow={backgroundOpacity}
+                aria-valuetext={`${Math.round(backgroundOpacity * 100)}%`}
+                className="flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
               <span className="text-xs text-muted-foreground w-10 text-right">
                 {Math.round(backgroundOpacity * 100)}%
