@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { MapIcon } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { LanguageSelector } from '@/components/ui/language-selector';
 import { MobileMenu } from './mobile-menu';
 
 export function Header() {
@@ -37,7 +38,8 @@ export function Header() {
         </nav>
         
         <div className="flex items-center gap-4">
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-2">
+            <LanguageSelector />
             <ThemeToggle />
           </div>
           <MobileMenu />

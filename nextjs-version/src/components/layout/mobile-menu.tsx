@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LanguageSelector } from "@/components/ui/language-selector";
 
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,6 +48,10 @@ export function MobileMenu() {
               >
                 Leaflet
               </Link>
+              <div className="pt-2 flex items-center justify-between border-t">
+                <span className="text-sm text-muted-foreground">Language</span>
+                <LanguageSelector />
+              </div>
               <div className="pt-2 flex items-center justify-between border-t">
                 <span className="text-sm text-muted-foreground">Theme</span>
                 <ThemeToggle />

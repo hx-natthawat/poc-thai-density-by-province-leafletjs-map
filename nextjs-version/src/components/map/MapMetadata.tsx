@@ -70,11 +70,81 @@ export function MapMetadata({ isOpen, onToggle }: MapMetadataProps) {
           </ul>
         </section>
         
-        <section>
-          <h3 className="font-medium mb-1">Color Legend</h3>
+        <section aria-labelledby="color-legend-heading">
+          <h3 id="color-legend-heading" className="font-medium mb-1">Color Legend</h3>
           <p className="text-muted-foreground">
             The map uses a color gradient from yellow to dark red to represent population density ranges, with darker colors indicating higher density areas.
           </p>
+          <div 
+            className="grid grid-cols-2 gap-2 mt-3" 
+            role="list" 
+            aria-label="Population density color legend"
+          >
+            <div className="flex items-center gap-2" role="listitem">
+              <div 
+                className="w-4 h-4 bg-[#800026] rounded-sm" 
+                aria-hidden="true"
+                style={{ border: '1px solid rgba(0, 0, 0, 0.2)' }}
+              ></div>
+              <span className="text-xs text-muted-foreground">Over 500 people/km²</span>
+            </div>
+            <div className="flex items-center gap-2" role="listitem">
+              <div 
+                className="w-4 h-4 bg-[#BD0026] rounded-sm" 
+                aria-hidden="true"
+                style={{ border: '1px solid rgba(0, 0, 0, 0.2)' }}
+              ></div>
+              <span className="text-xs text-muted-foreground">200-500 people/km²</span>
+            </div>
+            <div className="flex items-center gap-2" role="listitem">
+              <div 
+                className="w-4 h-4 bg-[#E31A1C] rounded-sm" 
+                aria-hidden="true"
+                style={{ border: '1px solid rgba(0, 0, 0, 0.2)' }}
+              ></div>
+              <span className="text-xs text-muted-foreground">100-200 people/km²</span>
+            </div>
+            <div className="flex items-center gap-2" role="listitem">
+              <div 
+                className="w-4 h-4 bg-[#FC4E2A] rounded-sm" 
+                aria-hidden="true"
+                style={{ border: '1px solid rgba(0, 0, 0, 0.2)' }}
+              ></div>
+              <span className="text-xs text-muted-foreground">50-100 people/km²</span>
+            </div>
+            <div className="flex items-center gap-2" role="listitem">
+              <div 
+                className="w-4 h-4 bg-[#FD8D3C] rounded-sm" 
+                aria-hidden="true"
+                style={{ border: '1px solid rgba(0, 0, 0, 0.2)' }}
+              ></div>
+              <span className="text-xs text-muted-foreground">20-50 people/km²</span>
+            </div>
+            <div className="flex items-center gap-2" role="listitem">
+              <div 
+                className="w-4 h-4 bg-[#FEB24C] rounded-sm" 
+                aria-hidden="true"
+                style={{ border: '1px solid rgba(0, 0, 0, 0.2)' }}
+              ></div>
+              <span className="text-xs text-muted-foreground">10-20 people/km²</span>
+            </div>
+            <div className="flex items-center gap-2" role="listitem">
+              <div 
+                className="w-4 h-4 bg-[#FED976] rounded-sm" 
+                aria-hidden="true"
+                style={{ border: '1px solid rgba(0, 0, 0, 0.2)' }}
+              ></div>
+              <span className="text-xs text-muted-foreground">5-10 people/km²</span>
+            </div>
+            <div className="flex items-center gap-2" role="listitem">
+              <div 
+                className="w-4 h-4 bg-[#FFEDA0] rounded-sm" 
+                aria-hidden="true"
+                style={{ border: '1px solid rgba(0, 0, 0, 0.2)' }}
+              ></div>
+              <span className="text-xs text-muted-foreground">0-5 people/km²</span>
+            </div>
+          </div>
         </section>
       </div>
     </section>
